@@ -93,44 +93,17 @@ contract Ownable {
 		owner = newOwner;
 	}
 }
-contract MintableToken is StandardToken, Ownable {
-		
-	event Mint(address indexed to, uint256 amount);
-	
-	event MintFinished();
 
-	bool public mintingFinished = false;
 
-	modifier canMint() {
-		require(!mintingFinished);
-		_;
-	}
-
-	function mint(address _to, uint256 _amount) public onlyOwner canMint returns (bool) {
-		totalSupply = totalSupply.add(_amount);
-		balances[_to] = balances[_to].add(_amount);
-		Mint(_to, _amount);
-		return true;
-	}
-
-	function finishMinting() public onlyOwner returns (bool) {
-		mintingFinished = true;
-		MintFinished();
-		return true;
-	}
-	
-}
-
-contract LENDCO_Token is MintableToken {
-	// 150`000`000 tokens
-	uint256 public totalSupply = 150000000000000000000000000; 
-	
+contract LENDCO_Token is StandardToken {
+	// 300`000`000 tokens
+	uint256 public totalSupply = 300000000000000000000000000; 
+	// Company name
 	string public constant name = "LENDCO";
-	
+	// Token symbol
 	string public constant symbol = "LOAN";
 	
 	uint32 public constant decimals = 18;
-		
 }
 
 
@@ -199,16 +172,6 @@ contract MainSale is Ownable {
 		msg.sender.transfer(value); 
 	}
 
-	function finishMinting() public onlyOwner {
-		if(this.balance > softcap) {
-			multisig.transfer(this.balance);
-			uint issuedTokenSupply = token.totalSupply();
-			uint restrictedTokens = issuedTokenSupply.mul(restrictedPercent).div(100 - restrictedPercent);
-			token.mint(restricted, restrictedTokens);
-			token.finishMinting();
-		}
-	}
-
 	function createTokens() public isUnderHardCap saleIsOn payable {
 		uint tokens = rate.mul(msg.value).div(1 ether);
 		uint bonusTokens = 0;
@@ -224,7 +187,6 @@ contract MainSale is Ownable {
 		}
 
 		tokens += bonusTokens;
-		token.mint(msg.sender, tokens);
 		balances[msg.sender] = balances[msg.sender].add(msg.value);
 	}
 
